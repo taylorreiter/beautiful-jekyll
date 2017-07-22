@@ -40,9 +40,9 @@ With a model organism like yeast, it was probably overkill to do the Eel Pond pr
 Even kmer sizes are bad-news bears for other applications, because read palindromes are possible. I would have selected a different size if I had known this at the time.
 
 References:
-[1] Ondov et al. 2016 DOI:10.1186/s13059-016-0997-x
-[2] Sourmash: https://github.com/dib-lab/sourmash
-[3] Schurch et al. 2016 DOI:10.1261/rna.053959.115
-[4] Syrah: https://github.com/dib-lab/syrah
-[5] Khmer: http://khmer.readthedocs.io/en/v2.0/
-[6] Eel Pond Protocol: https://github.com/dib-lab/eel-pond
+[1] Ondov et al. 2016 DOI:10.1186/s13059-016-0997-x  
+[2] Sourmash: https://github.com/dib-lab/sourmash  
+[3] Schurch et al. 2016 DOI:10.1261/rna.053959.115  
+[4] Syrah: https://github.com/dib-lab/syrah  
+[5] Khmer: http://khmer.readthedocs.io/en/v2.0/  
+[6] Eel Pond Protocol: https://github.com/dib-lab/eel-pond  
