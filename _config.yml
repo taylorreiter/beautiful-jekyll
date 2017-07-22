@@ -29,7 +29,7 @@ navbar-links:
     - CV: "cv"
     - Archives: "tags"
   Research:
-    - Open Science Framework: "osf.io/45tuw"
+    - Open Science Framework: "http://www.osf.io/45tuw"
   #  - Sierra Rivers Monitoring: "https://watershed.ucdavis.edu/project/long-term-river-monitoring"
   #  - River Time-Lapse: "https://vimeo.com/164154774"
   #  - Meadows: "http://meadows.ucdavis.edu"
