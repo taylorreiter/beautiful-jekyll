@@ -1,11 +1,8 @@
 ---
+layout: post
 title: Food was my first love
-date: 7/21/2017
 tags: [personal]
 ---
-
-
-
 
 People have told me you never forget your first love. Or, maybe you get over your first love, but that person always plays a special role in your life.
 
