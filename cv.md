@@ -4,7 +4,7 @@ title: ""
 permalink: /cv/
 ---
 
-### Curriculum vitae: _"the course of one's life"_
+## Curriculum vitae: the course of one's life
 
 A current version of my *CV* is included below. You can also [download the PDF here](https://www.dropbox.com/s/t7rylxgbjuym7cb/Reiter-cv-20170722.pdf?dl=0).
 
