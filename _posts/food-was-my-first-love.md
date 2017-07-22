@@ -1,7 +1,6 @@
 ---
-title: "Food was my first love"
-layout: blog
-date: "7/21/2017"
+title: Food was my first love
+date: 7/21/2017
 tags: [personal]
 ---
 
