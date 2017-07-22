@@ -1,6 +1,6 @@
 ---
 title: "Sourmash compare vs. MDS plot for RNAseq data"
-layout: post
+layout: blog
 date: "7/21/2017"
 tags: [research]
 ---
