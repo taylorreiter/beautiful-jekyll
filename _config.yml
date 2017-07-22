@@ -24,7 +24,6 @@ description: Tales of my exploits in biology, bioinfomatics, and beyond
 
 # List of links in the navigation bar
 navbar-links:
-navbar-links:
   About:
     - Bio: "aboutme"
     - CV: "cv"
