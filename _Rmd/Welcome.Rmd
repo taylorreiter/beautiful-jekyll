@@ -1,7 +1,14 @@
 ---
-layout: page
-title: About me
+title: "Welcome"
+layout: post
+date: "7/21/2017"
+output: html_document
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 
 My name is Taylor Reiter and I am graduate student at the University of California, Davis. My program is technically Food Science, but really I love food, biology, and bioinformatics. I have a lot of thoughts and opinions. I sometimes try and keep those to myself, but surely my opinions of science and bioinformatics will shine through in this blog. I'm a proponent of open science and so hither to and observe my trials and tribulations as I swim through entirely too much RNA-seq data and yet still make the argument for sequencing more!
 
