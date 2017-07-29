@@ -2,7 +2,6 @@
 title: "Sourmash compare vs. MDS plot for RNAseq data"
 layout: post
 date: "7/21/2017"
-output: html_document
 tags: [sourmash]
 ---
 

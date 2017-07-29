@@ -1,7 +1,4 @@
 ---
-title: "Taxonomy from Species Name in R"
-author: "Taylor Reiter"
-date: "7/28/2017"
 output: html_document
 ---
 
