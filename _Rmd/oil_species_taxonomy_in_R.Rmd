@@ -1,0 +1,115 @@
+---
+title: "Taxonomy from Species Name in R"
+author: "Taylor Reiter"
+date: "7/28/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, include = TRUE, tidy = TRUE, message = FALSE, error = FALSE, warning = FALSE)
+```
+Recently, I found myself wanting to make a phylogeny of species that I found interesting. These species were organisms that had been isolated from olive oil, typically by plating methods, and either identified through screening or through amplicon sequencing. Because olive oil microbiology is not a huge feild, and because olive oil is probably a highly selective environment, I was able to make a list of all of the organisms that have been identified in olive oil. 
+
+I had been using [phyloT](http://phylot.biobyte.de/) to generate phylogenetic treees, however because of it's GUI, it's not reproducible. And although olive oil microbiology may not be a bustling field, [new organisms](https://link.springer.com/article/10.1007/s10482-017-0832-8) are being isolated from oil semi-frequently. I started getting annoyed with having to regerenate the tree each time I wanted to update it, and so I began my search for the "best" phylogenetic tree generator. 
+
+However, I did not want to use sequences. I simply wanted to input my list of species or species IDs and output a tree. That way, I could update my list (either in an external document or in the script itself) and update my tree each time a new species was identified. 
+
+If only the world were simple. I played around with a few methods, however the one I like best uses both python and R. The first two that I show below use R-only methods, and although they are fine, they had shortcomings which I will discuss below.
+
+## Three ways to build a tree from species name (or taxon ID)
+
+The three ways I used to build my trees were:
+
+1. R metacoder package
+2. R rotl & ape packages
+3. R taxize package
+
+Additionally, I was able to produce a phylogeny using the Python ETE toolkit quite easily. If you prefer python, their page on [dealing with NCBI taxonomy](http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html) could be helpful.
+
+Hopefully one of these ways will be helpful!
+
+### My data
+
+As stated before, I used a self-made csv file of species and NCBI taxon identifiers from organisms that have been isolated from olive oil. You can see parts of the data.frame below.
+
+```{r read data}
+oil_species <- read.csv("./data/olive_oil_species.csv")
+```
+
+```{r}
+# Make a vector for species
+oil_species_taxon <- as.character(oil_species[, 2])
+oil_species_taxon
+```
+
+```{r NCBI ID}
+# Make a vector for NCBI ID
+oil_species_id <- oil_species[, 3]
+oil_species_id
+```
+
+### R metacoder package
+
+The metacoder package was easy to use and interfaced with many databases. I could also choose to give it NCBI taxon IDs or species names. I chose to give it names. 
+```{r create metacoder obj}
+library(metacoder)
+
+oil_taxon_metacoder <- extract_taxonomy(oil_species_taxon, key = "name", database = "ncbi", allow_na = TRUE)
+```
+
+```{r plot metacoder}
+heat_tree(oil_taxon_metacoder,
+          node_size = n_obs,
+          node_color = n_obs,
+          node_label = name)
+```
+
+However, I wasn't a huge fan of the metacoder `heat_tree()` output. I decided to explore what other packages interfaced with phylogenies to see if I could get an output that appealed to me. 
+
+### R rotl & ape packages
+
+rotl provides an interface to the "Open Tree of Life". The package allows you to query the tree and retrieve a phylogeny. 
+```{r libraries}
+library(rotl)
+library(ape)
+```
+
+```{r rotl all, eval = FALSE}
+oil_species_resolved <- tnrs_match_names(oil_species_taxon)
+tree <- tol_induced_subtree(ott_ids = oil_species_resolved$ott_id)
+```
+The above code doesn't work. The newest species, *Brettanomyces acidodurans*, isn't found in the database, and so it isn't represented on the tree. However, taking it out exposes a new problem:
+
+```{r rotl error1, eval = FALSE}
+# Remove the newest species, which wasn't found:
+oil_species_taxon_rm <- oil_species_taxon[-18]
+oil_species_resolved <- tnrs_match_names(oil_species_taxon_rm)
+tree <- tol_induced_subtree(ott_ids = oil_species_resolved$ott_id)
+```
+This code won't work either. The function `tol_induced_subtree()` can't find [454933] for *Candida sp. CBS 12510* (*Yamadazyma terventina* is how this species referred to in olive oil literature). If it is removed, then the phylogeny will work.
+
+```{r rotl error2}
+# Remove the newest species, which wasn't found:
+oil_species_taxon_rm <- oil_species_taxon[-18]
+oil_species_resolved <- tnrs_match_names(oil_species_taxon_rm)
+tree <- tol_induced_subtree(ott_ids = oil_species_resolved$ott_id[-16])
+plot(tree)
+```
+
+After this, I decided NCBI was the best database to use to build my phylogeny, so I searched for a tool that would allow me to do this.
+
+### R taxize package
+
+taxize is the rOpenSci toolbelt for taxonomic data. It has a lot of handy features to convert species names to IDs, and can produce phylogenies from existing databases, including NCBI.
+
+I used the taxonomy IDs produced above to make a classification object, which was then made into a tree.
+```{r taxize phyl}
+library(taxize)
+taxize_oil_class <- classification(oil_species_id, db = "ncbi")
+taxize_oil_tree <- class2tree(taxize_oil_class, check = TRUE)
+plot(taxize_oil_tree)
+```
+
+I used the vanilla-version of `plot()` to make these phylogeny plots, however bells and whistles could be added to make the plot look different.
+
+
