@@ -5,7 +5,7 @@ output: html_document
 I use the NUCmer script from the [MUMmer package](https://github.com/mummer4/mummer) frequently to align multifastas. Typically, I want to know where large sequences align from two fragmented assemblies. Although the MUMmer `show-coords` script formats the NUCmer output in a nice table, I have been seeking a better way to visualize the results. My solution is below! It primarily uses the GenomicRanges and ggbio R packages to make the plot. 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE, include = FALSE, tidy = TRUE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, include = TRUE, tidy = TRUE, message = FALSE)
 ```
 
 ## Comparing two multifastas with NUCmer
