@@ -1,0 +1,102 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read Depth and Copy Number Calculations
+
+Recently I was interested in calculating copy number of genes in a genome using read depth. There are plenty of programs to do this such as [CopywriteR](https://github.com/PeeperLab/CopywriteR), [CNOGpro](https://academic.oup.com/bioinformatics/article/31/11/1708/2365681), and [CNVnator](https://github.com/abyzovlab/CNVnator). However, I wanted to resolve copy number for all predicted genes in a metagenome, for which the genomes had been separated using Hi-C. I [found a paper](http://dx.doi.org/10.1016/j.cell.2014.12.038) that solved a similar problem by using `samtools depth`, and decided to try that method. 
+
+Generally, the method outlined in the paper went as follows:
++ Align metagenome sequencing reads to the reference genomes of the organisms in the metagenome
++ Convert sam file to sorted bam file
++ Parse the gff annotation file of the reference genome (filtered to contain only coding domain sequences) to a bed file
++ Use samtools depth to calculate read depth at every position contained in the bed file.
++ Parse the depth the results and normalize by some factor to obtain copy number estimates.
+
+I conceptually followed this approach, but since the authors didn't publish their code, it took me a while to piece a working solution together. Below I have included the code I used to calculate copy number for the genomes in my metagenome. I used [prokka](https://github.com/tseemann/prokka) gff annotation files, so no filtering step was necessary because the annotation file only contained coding domain sequences.I have *not* included installation instructions, as these vary from system to system. 
+
+## Preprocessing, Alignment, and Depth Calculation
+
+First I generated a prokka annotation file. I ran this command on all of my "reference genomes" from the species present in my metagenome
+```{r run_prokka, echo = TRUE, eval = FALSE}
+prokka --outdir prokka/ref_genome1 --prefix ref1 ref_genome1.fa
+```
+
+Next, I trimmed the reads from my metagenome sequencing file so they wouldn't contain adapters. I chose not to do quality trimming because I didn't want to discard any depth information. 
+
+```{r timmomatic, echo = TRUE, eval = FALSE}
+java -jar ~/Tools/Trimmomatic-0.36/trimmomatic-0.36.jar PE metagenome_R1.fastq metagenome_R2.fastq metagenome_R1.qc.fq s1_se metagenome_R2.qc.fq s2_se ILLUMINACLIP:TruSeq3-PE.fa:2:40:15 
+```
+
+I then concatenated my reference genomes together to make a reference metagenome that I align my metagenome reads to. I chose to concatenate and align instead of aligning to each file separately to avoid spurious alignments. 
+
+```{r bwa, echo = TRUE, eval = FALSE}
+cat ref_genome1.fasta ref_genome1.fasta ref_genome2.fasta ref_genome3.fasta ref_genome4.fasta ref_genome5.fasta ref_genome6.fasta  > ref_genome_cat.fa
+
+bwa index ref_genome_cat.fa
+
+bwa mem -t 3 -o alignment.sam ref_genome_cat.fa metagenome_R1.qc.fq metagenome_R2.qc.fq
+```
+
+Next I converted the `sam` file output by `bwa mem` into a bam file. 
+```{r convert-to-bam, echo = TRUE, eval = FALSE}
+samtools view -S -b alignment.sam > alignment.bam
+```
+
+`samtools depth` will calculate the depth at each base pair in this `bam` file, however I was only interested in the read depth in the coding domain sequences. Therefore, I converted the prokka annotation file I had generated in step one into a `bed` file, which is the format `samtools` requires to specify which loci to record depth for. 
+```{r gff2bed, eval = FALSE, echo = TRUE}
+gff2bed --keep-header < prokka/ref_genome1.gff > prokka/ref_genome1.gff.bed
+```
+
+For my last step on the command line, I calculated depth at each position using `samtools depth`. I did this for each of the reference genomes. 
+```{r samtools-depth, echo = TRUE, eval = FALSE}
+samtools depth -b prokka/ref_genome1.gff.bed alignment.bam > ref_genome1.prokka.depth
+```
+
+## Parsing the `samtools depth` output
+
+The output of `samtools depth` has three columns. The first is the name of the contig or chromosome, the second is the position, and the third is the number of reads aligned at that position. This format was not what I needed. Instead, I wanted the average read depth over all positions of a gene. Using the `samtools depth` file and the prokka `gff` file, I created the output that I wanted using the following function in R. 
+
+```{r}
+samtools_depth_mean_coverage <- function(samtools_depth_file, prokka_gff_file){
+  # Function that takes as input prokka gff (or other gff file with only CDS delineated, and in the same format as the prokka gff) file and samtools read depth file. 
+  # Returns as output a dataframe with genes that have a predicted copy number > 2.
+  # Dataframe includes contig name, sequence start and end coordinates, and gene name. 
+  # An NA for gene name indicates a hypothetical protein call by prokka. 
+  
+  cluster <- read.table(samtools_depth_file)
+  
+  library(rtracklayer)
+  # import the prokka gff file as a GRanges object
+  track <- import(prokka_gff_file)
+  print(head(track))
+  # make a dataframe of sequence name, start and end coordinates, and gene name.
+  cluster_ranges <- data.frame(seqnames(track), start(track), end(track), track$gene)
+  
+  # Unite gff file with depth information
+  # Initiate an empty vector to store the range data in 
+  all_range_means <- numeric()
+  for(i in 1:nrow(cluster_ranges)){
+    range_of_interest <- cluster_ranges$start.track[i] : cluster_ranges$end.track[i]
+    # subset to area of interest, defined by range_of_interest from gff track
+    subset1 <- subset(cluster, subset = cluster_ranges$seqnames.track[i] == cluster$V1 & cluster$V2 %in% range_of_interest)
+    # take the mean of subset1$V3, which captures read depth over the region
+    range_mean <- mean(subset1$V3)
+    # save the mean in a vector to bind back to the ranges data after all means have been calculated
+    all_range_means <- c(all_range_means, range_mean)
+  }
+  
+  # bind the means to the ranges data
+  cluster_ranges <- cbind(cluster_ranges, all_range_means)
+  return(cluster_ranges)
+}
+```
+
+This function takes a `samtools depth` file and an annotation file, and using the base pair coordinates in the annotation file, takes the average read depth of a gene. The output is a dataframe with the contig name, the start and end coordinates of the gene, the gene name (if there was one), and the average read depth over the entire gene. 
+
+I took this one step further and normalized the average read depth by the universal genes identified in the [paper](http://dx.doi.org/10.1016/j.cell.2014.12.038) that solved a similar problem to the one here. Normalizing gave me more palitable numbers, like 1 ish or 2 ish copies, instead of an average read depth of 116. 
+
