@@ -3,11 +3,34 @@ layout: page
 title: About me
 ---
 
-My name is Taylor Reiter and I am graduate student at the University of California, Davis. My program is technically Food Science, but really I love food, biology, and bioinformatics. I have a lot of thoughts and opinions. I sometimes try and keep those to myself, but surely my opinions of science and bioinformatics will shine through in this blog. I'm a proponent of open science and so hither to and observe my trials and tribulations as I swim through entirely too much RNA-seq data and yet still make the argument for sequencing more!
+I’m Taylor Reiter and I am computational biologist and sequencing data enthusiast. 
+I’m currently a PhD candidate at University of California, Davis in the Food Science 
+Graduate Group. I’m in the labs of Drs. [C. Titus Brown](http://ivory.idyll.org/lab/) 
+and [Ben Montpetit](https://montpetitlab.ucdavis.edu/).
 
-Other things about me: I am member of the lab for Data Intensive Biology and the Olive Center analytical chemistry lab. I graduated from Harvard with a degree in Human Evolutionary Biology. I am still learning a lot, and recognize that I probably will make mistakes in this blog, but isn't that part of the adventure?
+I spend my research time:
+1. Analyzing metagenomes with [spacegraphcats](https://github.com/dib-lab/2018-paper-spacegraphcats) 
+(what does one do with bags of kmers anyway?)
+2. Finding ways to make sourmash more relevant to biology (I can’t plot 69,056,100 comparisons 
+at once?! May I have a [random subsample](https://github.com/taylorreiter/yeast-rna-sigs/blob/master/outputs/yeast_sig_comp.matrix.png) please?)
+3. Integrating wine metatranscriptomes with metabolomic and genomic data to find vineyard-specific differences
 
-I consider my skills to include proficiency in R and bash, and wrangling RNA-seq data. I'm working on improving my python, git, and LaTeX. I often think of things evolutionarily, and I am working on my domain-specific biological knowledge in fruits (especially post-harvest) and soils.
 
-Taylor Reiter  
-4-19-17
+I spend my teaching time:
+1. Instructing and improving Data and Software Carpentry workshops
+2. Co-coordinating the [Davis R User’s Group](https://d-rug.github.io/) and Meet and Analyze Data help sessions
+3. Writing and instructing [other](https://ngs-docs.github.io/2018-cicese-metatranscriptomics/) 
+[workshops](https://github.com/ngs-docs/2018-ggg201a)
+
+With my free time I like to:
+1. Spend time in the Pacific Northwest
+2. Hike, bike, bake, and drink tea
+
+
+For more, see my [CV](https://taylorreiter.github.io/cv) , 
+[publications](https://scholar.google.com/citations?user=VC87UfMAAAAJ&hl=en), 
+or contact me @ReiterTaylor or tereiter@ucdavis.edu. 
+
+Taylor
+01/10/2019 
+
