@@ -16,10 +16,10 @@ running it on unix using conda.
 I downloaded the databases and executables using:
 
 ```
-wget ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz				# download the ko list 
-wget ftp://ftp.genome.jp/pub/db/kofam/profiles.tar.gz 			# download the hmm profiles
+wget ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz		# download the ko list 
+wget ftp://ftp.genome.jp/pub/db/kofam/profiles.tar.gz 		# download the hmm profiles
 wget ftp://ftp.genome.jp/pub/tools/kofamscan/kofamscan.tar.gz	# download kofamscan tool
-wget ftp://ftp.genome.jp/pub/tools/kofamscan/README.md			# download README
+wget ftp://ftp.genome.jp/pub/tools/kofamscan/README.md		# download README
 ```
 
 And then I unzipped and untarred the relevant files:
