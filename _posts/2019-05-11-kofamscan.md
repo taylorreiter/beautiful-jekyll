@@ -87,7 +87,7 @@ NORP88_10	K07507
 
 This output is handy because it can be fed into tools like 
 [KEGG Mapper](https://www.genome.jp/kegg/mapper.html), or 
-(KEGGDecoder)[https://github.com/bjtully/BioData/tree/master/KEGGDecoder] 
+[KEGGDecoder](https://github.com/bjtully/BioData/tree/master/KEGGDecoder) 
 (binderized repo [here](https://github.com/rotheconrad/KEGGDecoder-binder)).
 
 ![Example KEGGDecoder output using the kofamscan mapper format](../img/keggdecoder.png)
