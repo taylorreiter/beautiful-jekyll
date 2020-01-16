@@ -1,0 +1,112 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+For almost every workflow I run, I use snakemake. 
+[Snakemake](https://snakemake.readthedocs.io/en/stable/) is a workflow manager written by bioinformaticians for bioinformaticians.
+It has a lot of wonderful features (file tracking, cluster integration, reports, and integration with multiple languages), including support for [conda environments](https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html#combining-conda-package-management-with-containers). 
+I use conda to specify all of the software I need for a rule, and conda takes care of building the environments for me. 
+This makes my workflows more repeatable, and allows me to quickly switch between different systems (e.g. my campus compute cluster and [NSF XSEDE's Jetstream](https://jetstream-cloud.org/)).
+
+Here is an example of a simple Snakefile, as well as the accompanying conda environment.
+
+**Snakefile**:
+```{bash, eval = F}
+rule tally_iris:
+    output: "iris_tally.csv"
+    conda: 'dplyr.yml'
+    shell: '''
+    Rscript -e "library(dplyr); library(readr); iris %>% group_by(Species) %>% tally() %>% write_csv('iris_tally.csv')"
+    '''
+```
+
+**dplyr.yml**:
+```{bash, eval = F}
+channels:
+   - conda-forge
+   - bioconda
+   - defaults
+dependencies:
+   - r-dplyr=0.8.3
+   - r-readr=1.3.1
+```
+
+To execute this snakefile, I would run:
+
+```{bash, eval = F}
+snakemake --use-conda
+```
+
+However, sometimes I run into a situation where the package or library I use in my workflow does not have a conda package associated with it. 
+In this case, I used to install all of the dependencies (assuming they had conda packages) in a conda environment, and then install the package I was interested in a rule in snakemake.
+I would usually also make this installation script write out a text file so that I knew the rule had finished running.
+
+No more! [Luiz Irber](https://luizirber.org/) recently showed me how to make a conda-forge recipe from a CRAN pacakge. 
+I did this successfully with the `optimr` package, and couldn't believe how streamlined the process is. 
+I walk through the process below. 
+
+### 1. Build the recipe using conda_r_skeleton_helper
+
+[`conda_r_skeleton_helper`](https://github.com/bgruening/conda_r_skeleton_helper) is a github repository that builds a properly formatted conda-forge recipe from an R CRAN package. 
+With a user-created list of packages, it builds a recipe for each package in the list. 
+It uses the documentation on CRAN to auto-populate recipe fields like dependencies and description, as well as others.
+
+#### 1a. Installing `conda-build`
+
+`conda_r_skeleton_helper` requires `conda-build`, so I first installed it into its own conda environment.
+
+```{bash, eval = F}
+conda create -n conda_build conda-build
+conda activate conda_build
+```
+
+#### 1b. Cloning `conda_r_skeleton_helper`
+
+Next, I cloned the repository to my laptop.
+
+```{bash, eval = F}
+git clone https://github.com/bgruening/conda_r_skeleton_helper.git
+```
+
+#### 1c. Building the recipe
+
+With `conda_r_skeleton_helper` on my laptop, I then followed the instructions on the README file and added the R CRAN packages I wanted to build a recipe for to the `packages.txt` file. I removed the packages that were already there. 
+
+In this case, I was building a recipe for `optimr`. My `packages.txt` file ended up looking like this:
+
+```{bash, eval = F}
+r-optimr
+```
+
+With my packages of interest in the `packages.txt` file, I then ran the `run` script. 
+I chose to run it in R, but it can be run in bash and python as well.
+```{bash, eval = F}
+Rscript run.R
+```
+
+When this was finished running, I had a newly created folder called `r-optimr`. 
+Inside it was three files, `bld.bat`, `build.sh`, `meta.yaml`. 
+
+I had successfully built a conda-forge recipe!
+As a last step, I added my github username to the maintainers section so that I can approve version bumps on the recipe. 
+conda-forge has set up a bot to orchestrate these changes, but a maintainer still needs to click the merge button to propagate those changes. 
+Because I made the recipe, I added myself so I can click the button.
+
+### 2. Submit the recipe to conda-forge
+
+With the recipe built, I now needed to submit it to conda-forge.
+I decided to orchestrate this process within GitHub instead of using git for no particular reason.
+To start the process, I first forked the conda-forge [staged-recipes](https://github.com/conda-forge/staged-recipes) repository into my own github. Once there, I created a branch that I named `r-optimr`.
+I switched to that branch and changed into the `recipes` directory.
+I clicked upload, and uploaded my local `r-optimr` folder.
+Lastly, I started a pull request to merge my changes on my `r-optimr` branch to the `conda-forge` master branch.
+I followed the checklist that is in the PR template and clicked submit!
+My recipe passed all checks, so it was merged within a few hours of my posting it. 
+
+You can see my merged PR [here](https://github.com/conda-forge/staged-recipes/pull/10608), and the `r-optimr` conda-forge package [here](https://anaconda.org/conda-forge/r-optimr).
+
+Thank you to Luiz Irber for teaching me this process, and for feedback on this post!
