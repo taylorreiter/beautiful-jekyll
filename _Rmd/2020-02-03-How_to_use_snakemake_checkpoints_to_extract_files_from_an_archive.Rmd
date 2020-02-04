@@ -12,8 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 pre, code {white-space:pre !important; overflow-x:auto}
 ```
 
-# How to use snakemake checkpoints to extract files from an archive 
-
 I use Snakemake for almost all of my workflows. [Snakemake](https://snakemake.readthedocs.io/en/stable/) 
 is a workflow manager built for bioinformatics. It does a ton of really cool 
 things...see [this tutorial](https://angus.readthedocs.io/en/2019/snakemake_for_automation.html) 
@@ -161,6 +159,50 @@ rule finished:
     output: "finished.txt"
     shell:'''
     touch {output}
+    '''
+```
+
+Lastly, you can also remove `rule finished` if you don't want to have an
+extra empty file generated at the end of the workflow and you don't have a 
+summary step. To do this, `aggregate_decompress_plass` can be used as the
+input to `rule all`. However, the function needs to be defined before the 
+`rule all` is evaluated. I prefer to have `aggregate_decompress_plass` inline
+with the checkpoint and rules it's operating on, so I prefer to use the empty
+file. However, I've included the alternative below. 
+
+```
+def aggregate_decompress_plass(wildcards):
+    checkpoint_output = checkpoints.decompress_plass.get(**wildcards).output[0]    
+    file_names = expand("outputs/cd-hit95/{mag}.cdhit95.faa", 
+                        mag = glob_wildcards(os.path.join(checkpoint_output, "{mag}.fa.cdbg_ids.reads.hardtrim.fa.gz.plass.cdhit.fa.clean.cut.dup")).mag)
+    return file_names
+    
+rule all: 
+    input:
+        "finished.txt"
+
+rule download_plass:
+    output: "inputs/plass/hu-s1-plass-hardtrim-clean-jan08.2019.tar.gz"
+    shell:'''
+    curl -L -o {output} https://osf.io/9hg85/download
+    '''
+
+checkpoint decompress_plass:
+    output: directory("inputs/plass/hu-s1_k31_r1_search_oh0")
+    input: "inputs/plass/hu-s1-plass-hardtrim-clean-jan08.2019.tar.gz"
+    params: folder = "inputs/plass"
+    shell:'''
+    mkdir -p {params.folder}
+    tar xvf {input} -C {params.folder}
+    '''
+    
+rule cdhit_plass:
+    output: "outputs/cd-hit95/{mag}.cdhit95.faa"
+    input: "inputs/plass/hu-s1_k31_r1_search_oh0/{mag}.fa.cdbg_ids.reads.hardtrim.fa.gz.plass.cdhit.fa.clean.cut.dup"
+    benchmark: "benchmarks/{mag}.cdhit95.benchmark.txt"
+    conda: 'env.yml'
+    shell:'''
+    cd-hit -i {input} -o {output} -c .95
     '''
 ```
 
